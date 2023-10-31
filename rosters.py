@@ -26,8 +26,8 @@ class pg:
 
         # define expected values of a player's stats
         self.pts = 0.1 * (self.outside_scoring + self.inside_scoring)
-        self.reb = 0.1 * self.rebounding
-        self.ast = 0.07 * self.playmaking
+        self.reb = 0.05 * self.rebounding
+        self.ast = 0.05 * self.playmaking
 
 class sg:
     def __init__(self):
@@ -46,8 +46,8 @@ class sg:
 
         # define expected values of a player's stats
         self.pts = 0.1 * (self.outside_scoring + self.inside_scoring)
-        self.reb = 0.1 * self.rebounding
-        self.ast = 0.07 * self.playmaking
+        self.reb = 0.05 * self.rebounding
+        self.ast = 0.05 * self.playmaking
 
 class sf:
     def __init__(self):
@@ -66,8 +66,8 @@ class sf:
 
         # define expected values of a player's stats
         self.pts = 0.1 * (self.outside_scoring + self.inside_scoring)
-        self.reb = 0.1 * self.rebounding
-        self.ast = 0.07 * self.playmaking
+        self.reb = 0.05 * self.rebounding
+        self.ast = 0.05 * self.playmaking
 
 class pf:
     def __init__(self):
@@ -86,8 +86,8 @@ class pf:
 
         # define expected values of a player's stats
         self.pts = 0.1 * (self.outside_scoring + self.inside_scoring)
-        self.reb = 0.1 * self.rebounding
-        self.ast = 0.07 * self.playmaking
+        self.reb = 0.05 * self.rebounding
+        self.ast = 0.05 * self.playmaking
 
 class c:
     def __init__(self):
@@ -106,8 +106,8 @@ class c:
 
         # define expected values of a player's stats
         self.pts = 0.1 * (self.outside_scoring + self.inside_scoring)
-        self.reb = 0.1 * self.rebounding
-        self.ast = 0.07 * self.playmaking
+        self.reb = 0.05 * self.rebounding
+        self.ast = 0.05 * self.playmaking
 
         
 class team:
