@@ -2,11 +2,14 @@ import numpy as np
 from rosters import truncated_norm, team
 
 class game:
-    def __init__(self, team1, team2):
+    def __init__(self, team1, team2, game_number, stats, team_stats):
         np.random.seed(None)
-        
+    
+        self.game_number = game_number
         self.team1 = team1
         self.team2 = team2
+        self.stats = stats
+        self.team_stats = team_stats
         self.positions = ['pg', 'sg', 'sf', 'pf', 'c']
 
         # Calculate penalties for each position
@@ -17,6 +20,7 @@ class game:
         self.team1_box = self.calculate_box_score(team1, 1)
         self.team2_box = self.calculate_box_score(team2, -1)
 
+    # Function to calculate box score for a team, and store the stats for each player
     def calculate_box_score(self, team, penalty_multiplier):
         box_scores = []
         for pos in self.positions:
@@ -26,6 +30,7 @@ class game:
             reb = np.ceil(truncated_norm(player.reb * (1 + penalty), 5))
             ast = np.ceil(truncated_norm(player.ast * (1 + penalty), 5))
             box_scores.append([pts, reb, ast])
+            self.stats[team.seed, self.game_number, np.where(np.array(self.positions) == pos)[0][0], :] = [pts, reb, ast]
         return np.array(box_scores)
 
     # Display box score for a team
@@ -47,10 +52,16 @@ class game:
         print(f'{self.team1.name}: {team1_pts} points')
         print(f'{self.team2.name}: {team2_pts} points')
 
-        
-eagles = team(name="Eagles",seed=1)
-falcons = team(name="Falcons",seed=2)
-
-game1 = game(eagles, falcons)
-game1.box_score()
-game1.result()
+    # Keep track of W-L record for each team
+    def win_loss(self):
+        team1_pts = np.sum(self.team1_box[:, 0])
+        team2_pts = np.sum(self.team2_box[:, 0])
+        if team1_pts > team2_pts:
+            self.team_stats[self.team1.seed, 0] += 1
+            self.team_stats[self.team2.seed, 1] += 1
+        elif team2_pts > team1_pts:
+            self.team_stats[self.team1.seed, 1] += 1
+            self.team_stats[self.team2.seed, 0] += 1
+        else:
+            self.team_stats[self.team1.seed, 2] += 1
+            self.team_stats[self.team2.seed, 2] += 1
