@@ -35,9 +35,9 @@ class season:
             g.win_loss()
 
     # print a stat for a specific team, game, position, and stat
-    def print_stats(self, team, game, pos, stat):
+    def return_stats(self, team, game, pos, stat):
         self.play_season()
-        print(self.stats[team, game, pos, stat])
+        return self.stats[team, game, pos, stat]
 
     # Print team names used in this instance
     def print_teams(self):
