@@ -2,7 +2,6 @@ import pandas as pd
 from season import season
 
 s = season(30)
-s.play_season()
 data = s.stats
 
 # flatten array first
@@ -14,9 +13,15 @@ for team in range(data.shape[0]):
                 entries.append((team, game, position, stat, data[team, game, position, stat]))
 
 # convert to dataframe
-df = pd.DataFrame(entries, columns=['team', 'game', 'position', 'stat', 'value'])
+df_stats = pd.DataFrame(entries, columns=['team', 'game_id', 'pos', 'stat', 'val'])
 # remove rows whos stat is zero
-df = df[df.value != 0.0]
-df.to_csv('game_stats.csv', index=False)
+df_stats = df_stats[df_stats.val != 0.0]
+
+# give teams, positions, stats a name
+df_stats.team = df_stats.team.apply(lambda x: s.teams[x].name)
+df_stats.pos = df_stats.pos.apply(lambda x: s.positions[x])
+df_stats.stat = df_stats.stat.apply(lambda x: s.stat_names[x])
+
+df_stats.to_csv('game_stats.csv', index=False)
 
 

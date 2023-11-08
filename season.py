@@ -10,8 +10,10 @@ class season:
         self.num_teams = num_teams
         self.num_games = 2*comb(self.num_teams, 2)
         
-        # Create teams
+        # Create teams names, position names, stat names
         self.teams = [team(name=team_nicknames[i],seed=i) for i in range(self.num_teams)]
+        self.positions = ['PG', 'SG', 'SF', 'PF', 'C']
+        self.stat_names = ['PTS', 'REB', 'AST']
 
         # Create numpy array with all combinations of two teams
         self.matchups = np.array(list(combinations(self.teams, 2)))
@@ -24,7 +26,6 @@ class season:
         # initialize win-loss record for each team
         self.team_stats = np.zeros((self.num_teams,3))
 
-    def play_season(self):
         # iterate over each matchup
         for i in range(self.num_games):
             # create a game instance
@@ -33,10 +34,9 @@ class season:
             g.calculate_box_score(self.matchups[i,0], 1)
             g.calculate_box_score(self.matchups[i,1], -1)
             g.win_loss()
-
+        
     # print a stat for a specific team, game, position, and stat
     def return_stats(self, team, game, pos, stat):
-        self.play_season()
         return self.stats[team, game, pos, stat]
 
     # Print team names used in this instance
@@ -46,8 +46,6 @@ class season:
 
     # print a table of league standings
     def standings(self):
-        self.play_season()
-    
         # Combine team names with their stats for sorting
         team_standings = [(self.teams[i].name, *self.team_stats[i]) for i in range(len(self.teams))]
     
@@ -60,8 +58,6 @@ class season:
 
     # print a table of league leaders
     def league_leaders(self):
-        self.play_season()
-        positions = ['PG', 'SG', 'SF', 'PF', 'C']
         # compute the average stats for each player
         average_stats = np.sum(self.stats, axis=1) / (2.*self.num_teams - 2.)
 
@@ -79,9 +75,9 @@ class season:
         apg_team_index, apg_pos_index = apg_indices
 
         # print the results
-        print(f"PTS leader: {self.teams[ppg_team_index].name} {positions[ppg_pos_index]}, {round(ppg[ppg_indices],1)} PPG")
-        print(f"REB leader: {self.teams[rpg_team_index].name} {positions[rpg_pos_index]}, {round(rpg[rpg_indices],1)} RPG")
-        print(f"AST leader: {self.teams[apg_team_index].name} {positions[apg_pos_index]}, {round(apg[apg_indices],1)} APG")
+        print(f"PTS leader: {self.teams[ppg_team_index].name} {self.positions[ppg_pos_index]}, {round(ppg[ppg_indices],1)} PPG")
+        print(f"REB leader: {self.teams[rpg_team_index].name} {self.positions[rpg_pos_index]}, {round(rpg[rpg_indices],1)} RPG")
+        print(f"AST leader: {self.teams[apg_team_index].name} {self.positions[apg_pos_index]}, {round(apg[apg_indices],1)} APG")
 
 #s = season(30)
 #s.standings()

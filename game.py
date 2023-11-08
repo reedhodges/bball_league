@@ -26,9 +26,9 @@ class game:
         for pos in self.positions:
             player = getattr(team, pos)
             penalty = self.penalties[pos] * penalty_multiplier
-            pts = np.ceil(truncated_norm(player.pts * (1 + penalty), 5))
-            reb = np.ceil(truncated_norm(player.reb * (1 + penalty), 5))
-            ast = np.ceil(truncated_norm(player.ast * (1 + penalty), 5))
+            pts = np.ceil(truncated_norm(player.pts * (1 + penalty), 10))
+            reb = np.ceil(truncated_norm(player.reb * (1 + penalty), 10))
+            ast = np.ceil(truncated_norm(player.ast * (1 + penalty), 10))
             box_scores.append([pts, reb, ast])
             self.stats[team.seed, self.game_number, np.where(np.array(self.positions) == pos)[0][0], :] = [pts, reb, ast]
         return np.array(box_scores)

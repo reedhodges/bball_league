@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from scipy.stats import truncnorm
 
 # use a truncated normal distribution to generate a random
@@ -35,7 +34,8 @@ class pg(Player):
             'athleticism': (80, 10),
             'playmaking': (85, 10),
             'rebounding': (60, 15),
-            'intangibles': (70, 5)
+            'intangibles': (70, 5),
+            'height': (190, 5)
         }, seed=seed)
 
 class sg(Player):
@@ -47,8 +47,9 @@ class sg(Player):
             'athleticism': (80, 10),
             'playmaking': (75, 15),
             'rebounding': (60, 15),
-            'intangibles': (70, 5)
-        }, seed=seed)
+            'intangibles': (70, 5),
+            'height': (195, 5)
+        }, seed=seed+1)
 
 class sf(Player):
     def __init__(self, seed=None):
@@ -59,8 +60,9 @@ class sf(Player):
             'athleticism': (60, 15),
             'playmaking': (60, 15),
             'rebounding': (75, 15),
-            'intangibles': (70, 5)
-        }, seed=seed)
+            'intangibles': (70, 5),
+            'height': (203, 5)
+        }, seed=seed+2)
 
 class pf(Player):
     def __init__(self, seed=None):
@@ -71,8 +73,9 @@ class pf(Player):
             'athleticism': (70, 15),
             'playmaking': (60, 15),
             'rebounding': (80, 15),
-            'intangibles': (70, 5)
-        }, seed=seed)
+            'intangibles': (70, 5),
+            'height': (207, 5)
+        }, seed=seed+3)
 
 class c(Player):
     def __init__(self, seed=None):
@@ -83,8 +86,9 @@ class c(Player):
             'athleticism': (60, 10),
             'playmaking': (60, 15),
             'rebounding': (85, 5),
-            'intangibles': (70, 5)
-        }, seed=seed)
+            'intangibles': (70, 5),
+            'height': (210, 5)
+        }, seed=seed+4)
 
 class team:
     def __init__(self, name, seed=None):
