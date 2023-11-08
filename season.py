@@ -12,7 +12,7 @@ class season:
         
         # Create teams names, position names, stat names
         self.teams = [team(name=team_nicknames[i],seed=i) for i in range(self.num_teams)]
-        self.positions = ['PG', 'SG', 'SF', 'PF', 'C']
+        self.positions = ['pg', 'sg', 'sf', 'pf', 'c']
         self.stat_names = ['PTS', 'REB', 'AST']
 
         # Create numpy array with all combinations of two teams

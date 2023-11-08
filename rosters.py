@@ -3,22 +3,24 @@ from scipy.stats import truncnorm
 
 # use a truncated normal distribution to generate a random
 # skill rating between 0 and 100, for a given mean and std dev
-def truncated_norm(mean, std_dev, seed=None):
+def truncated_norm(mean, std_dev, MIN, MAX, seed=None):
     # make sure the seed is set so that the same player is generated
     if seed is not None:
         np.random.seed(seed)
-    a = (0 - mean) / std_dev
-    b = (100 - mean) / std_dev
+    a = (MIN - mean) / std_dev
+    b = (MAX - mean) / std_dev
     return truncnorm.rvs(a, b, loc=mean, scale=std_dev)
 
 class Player:
     def __init__(self, attribute_means_and_stds, seed=None):
         self.attributes = {}
-        for key, (mean, std) in attribute_means_and_stds.items():
-            self.attributes[key] = truncated_norm(mean, std, seed)
+        for key, (mean, std, MIN, MAX) in attribute_means_and_stds.items():
+            self.attributes[key] = truncated_norm(mean, std, MIN, MAX, seed)
         
-        # Define overall to be the average of the top 3 attributes
-        self.overall = np.mean(sorted(self.attributes.values())[-3:])
+        # Define overall to be the average of the top 3 attributes, except for height
+        # first create new dictionary that removes height
+        self.attributes_without_height = {key: value for key, value in self.attributes.items() if key != 'height'}
+        self.overall = np.mean(sorted(self.attributes_without_height.values())[-3:])
         
         # Define expected values of a player's stats
         self.pts = 0.1 * (self.attributes['outside_scoring'] + self.attributes['inside_scoring'])
@@ -28,66 +30,66 @@ class Player:
 class pg(Player):
     def __init__(self, seed=None):
         super().__init__({
-            'outside_scoring': (80, 15),
-            'inside_scoring': (60, 10),
-            'defending': (70, 20),
-            'athleticism': (80, 10),
-            'playmaking': (85, 10),
-            'rebounding': (60, 15),
-            'intangibles': (70, 5),
-            'height': (190, 5)
+            'outside_scoring': (80, 15, 0, 100),
+            'inside_scoring': (60, 10, 0, 100),
+            'defending': (70, 20, 0, 100),
+            'athleticism': (80, 10, 0, 100),
+            'playmaking': (85, 10, 0, 100),
+            'rebounding': (60, 15, 0, 100),
+            'intangibles': (70, 5, 0, 100),
+            'height': (190, 5, 167, 226)
         }, seed=seed)
 
 class sg(Player):
     def __init__(self, seed=None):
         super().__init__({
-            'outside_scoring': (85, 15),
-            'inside_scoring': (60, 10),
-            'defending': (70, 20),
-            'athleticism': (80, 10),
-            'playmaking': (75, 15),
-            'rebounding': (60, 15),
-            'intangibles': (70, 5),
-            'height': (195, 5)
+            'outside_scoring': (85, 15, 0, 100),
+            'inside_scoring': (60, 10, 0, 100),
+            'defending': (70, 20, 0, 100),
+            'athleticism': (80, 10, 0, 100),
+            'playmaking': (75, 15, 0, 100),
+            'rebounding': (60, 15, 0, 100),
+            'intangibles': (70, 5, 0, 100),
+            'height': (195, 5, 167, 226)
         }, seed=seed+1)
 
 class sf(Player):
     def __init__(self, seed=None):
         super().__init__({
-            'outside_scoring': (75, 15),
-            'inside_scoring': (75, 15),
-            'defending': (75, 10),
-            'athleticism': (60, 15),
-            'playmaking': (60, 15),
-            'rebounding': (75, 15),
-            'intangibles': (70, 5),
-            'height': (203, 5)
+            'outside_scoring': (75, 15, 0, 100),
+            'inside_scoring': (75, 15, 0, 100),
+            'defending': (75, 10, 0, 100),
+            'athleticism': (60, 15, 0, 100),
+            'playmaking': (60, 15, 0, 100),
+            'rebounding': (75, 15, 0, 100),
+            'intangibles': (70, 5, 0, 100),
+            'height': (203, 5, 167, 226)
         }, seed=seed+2)
 
 class pf(Player):
     def __init__(self, seed=None):
         super().__init__({
-            'outside_scoring': (60, 15),
-            'inside_scoring': (80, 10),
-            'defending': (75, 10),
-            'athleticism': (70, 15),
-            'playmaking': (60, 15),
-            'rebounding': (80, 15),
-            'intangibles': (70, 5),
-            'height': (207, 5)
+            'outside_scoring': (60, 15, 0, 100),
+            'inside_scoring': (80, 10, 0, 100),
+            'defending': (75, 10, 0, 100),
+            'athleticism': (70, 15, 0, 100),
+            'playmaking': (60, 15, 0, 100),
+            'rebounding': (80, 15, 0, 100),
+            'intangibles': (70, 5, 0, 100),
+            'height': (207, 5, 167, 226)
         }, seed=seed+3)
 
 class c(Player):
     def __init__(self, seed=None):
         super().__init__({
-            'outside_scoring': (50, 15),
-            'inside_scoring': (85, 15),
-            'defending': (80, 10),
-            'athleticism': (60, 10),
-            'playmaking': (60, 15),
-            'rebounding': (85, 5),
-            'intangibles': (70, 5),
-            'height': (210, 5)
+            'outside_scoring': (50, 15, 0, 100),
+            'inside_scoring': (85, 15, 0, 100),
+            'defending': (80, 10, 0, 100),
+            'athleticism': (60, 10, 0, 100),
+            'playmaking': (60, 15, 0, 100),
+            'rebounding': (85, 5, 0, 100),
+            'intangibles': (70, 5, 0, 100),
+            'height': (210, 5, 167, 226)
         }, seed=seed+4)
 
 class team:
