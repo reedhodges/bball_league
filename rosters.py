@@ -14,18 +14,25 @@ def truncated_norm(mean, std_dev, MIN, MAX, seed=None):
 class Player:
     def __init__(self, attribute_means_and_stds, seed=None):
         self.attributes = {}
-        for key, (mean, std, MIN, MAX) in attribute_means_and_stds.items():
-            self.attributes[key] = truncated_norm(mean, std, MIN, MAX, seed)
-        
-        # Define overall to be the average of the top 3 attributes, except for height
-        # first create new dictionary that removes height
-        self.attributes_without_height = {key: value for key, value in self.attributes.items() if key != 'height'}
+        for key, values in attribute_means_and_stds.items():
+            # exclude poisson_means from the truncated normal distribution
+            if key == 'poisson_means':
+                continue
+            else:
+                mean, std, MIN, MAX = values
+                self.attributes[key] = truncated_norm(mean, std, MIN, MAX, seed=seed)
+
+        # Define overall to be the average of the top 3 attributes, except for height and poisson_means
+        # first create new dictionary that removes height and poisson_means
+        self.attributes_without_height = {key: value for key, value in self.attributes.items() if key != 'height' and key != 'poisson_means'}
         self.overall = np.mean(sorted(self.attributes_without_height.values())[-3:])
         
-        # Define expected values of a player's stats
-        self.pts = 0.1 * (self.attributes['outside_scoring'] + self.attributes['inside_scoring'])
-        self.reb = 0.05 * self.attributes['rebounding']
-        self.ast = 0.05 * self.attributes['playmaking']
+        # Define expected values of a player's stats.
+        # These adjust the Poisson mean according to the player's attributes,
+        # i.e. they give a buff or a nerf to the Poisson mean
+        self.pts = (attribute_means_and_stds['poisson_means'][0] * self.attributes['outside_scoring'] * self.attributes['inside_scoring']) / (attribute_means_and_stds['outside_scoring'][0] * attribute_means_and_stds['inside_scoring'][0])
+        self.reb = (attribute_means_and_stds['poisson_means'][1] * self.attributes['rebounding']) / attribute_means_and_stds['rebounding'][0]
+        self.ast = (attribute_means_and_stds['poisson_means'][2] * self.attributes['playmaking']) / attribute_means_and_stds['playmaking'][0]
 
 class pg(Player):
     def __init__(self, seed=None):
@@ -37,7 +44,8 @@ class pg(Player):
             'playmaking': (85, 10, 0, 100),
             'rebounding': (60, 15, 0, 100),
             'intangibles': (70, 5, 0, 100),
-            'height': (190, 5, 167, 226)
+            'height': (190, 5, 167, 226),
+            'poisson_means': (15.1, 3.8, 4.6) # pts, reb, ast
         }, seed=seed)
 
 class sg(Player):
@@ -50,7 +58,8 @@ class sg(Player):
             'playmaking': (75, 15, 0, 100),
             'rebounding': (60, 15, 0, 100),
             'intangibles': (70, 5, 0, 100),
-            'height': (195, 5, 167, 226)
+            'height': (195, 5, 167, 226),
+            'poisson_means': (15.1, 3.8, 4.6) # pts, reb, ast
         }, seed=seed+1)
 
 class sf(Player):
@@ -63,7 +72,8 @@ class sf(Player):
             'playmaking': (60, 15, 0, 100),
             'rebounding': (75, 15, 0, 100),
             'intangibles': (70, 5, 0, 100),
-            'height': (203, 5, 167, 226)
+            'height': (203, 5, 167, 226),
+            'poisson_means': (14.0, 6.2, 2.3) # pts, reb, ast
         }, seed=seed+2)
 
 class pf(Player):
@@ -76,7 +86,8 @@ class pf(Player):
             'playmaking': (60, 15, 0, 100),
             'rebounding': (80, 15, 0, 100),
             'intangibles': (70, 5, 0, 100),
-            'height': (207, 5, 167, 226)
+            'height': (207, 5, 167, 226),
+            'poisson_means': (14.0, 6.2, 2.3) # pts, reb, ast
         }, seed=seed+3)
 
 class c(Player):
@@ -89,7 +100,8 @@ class c(Player):
             'playmaking': (60, 15, 0, 100),
             'rebounding': (85, 5, 0, 100),
             'intangibles': (70, 5, 0, 100),
-            'height': (210, 5, 167, 226)
+            'height': (210, 5, 167, 226),
+            'poisson_means': (11.6, 8.1, 1.6) # pts, reb, ast
         }, seed=seed+4)
 
 class team:

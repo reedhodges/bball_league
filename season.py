@@ -79,7 +79,7 @@ class season:
         print(f"REB leader: {self.teams[rpg_team_index].name} {self.positions[rpg_pos_index]}, {round(rpg[rpg_indices],1)} RPG")
         print(f"AST leader: {self.teams[apg_team_index].name} {self.positions[apg_pos_index]}, {round(apg[apg_indices],1)} APG")
 
-#s = season(30)
-#s.standings()
-#print()
-#s.league_leaders()
+s = season(30)
+s.standings()
+print()
+s.league_leaders()

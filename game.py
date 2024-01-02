@@ -1,5 +1,5 @@
 import numpy as np
-from rosters import truncated_norm, team
+from rosters import team
 
 class game:
     def __init__(self, team1, team2, game_number, stats, team_stats):
@@ -26,9 +26,10 @@ class game:
         for pos in self.positions:
             player = getattr(team, pos)
             penalty = self.penalties[pos] * penalty_multiplier
-            pts = np.ceil(truncated_norm(player.pts * (1 + penalty), 10, 0, 80))
-            reb = np.ceil(truncated_norm(player.reb * (1 + penalty), 10, 0, 30))
-            ast = np.ceil(truncated_norm(player.ast * (1 + penalty), 10, 0, 20))
+            # pick a random number from a Poisson distribution with mean = player.pts * (1 + penalty), etc.
+            pts = np.ceil(np.random.poisson(player.pts * (1 + penalty)))
+            reb = np.ceil(np.random.poisson(player.reb * (1 + penalty)))
+            ast = np.ceil(np.random.poisson(player.ast * (1 + penalty)))
             box_scores.append([pts, reb, ast])
             self.stats[team.seed, self.game_number, np.where(np.array(self.positions) == pos)[0][0], :] = [pts, reb, ast]
         return np.array(box_scores)
