@@ -1,64 +1,68 @@
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
-# read in data from nba_data/starter_stats.csv
-starter_stats = pd.read_csv('nba_data/starter_stats.csv')
+def read_and_process_data(file_path, position, filter_col, filter_value, percent_col, numerator, denominator):
+    df = pd.read_csv(file_path)
+    # remove rows with 0 attempts
+    df = df[df[filter_col] != filter_value]
+    # add column for FG% or FG3%
+    df[percent_col] = df[numerator] / df[denominator]
+    # exclude outliers of 0% and 100%
+    df = df[df[percent_col].between(0.01, 0.99)]  
+    # add column for position
+    df['Position'] = position
+    return df
 
-fig_pts = px.histogram(starter_stats, x='PTS', 
-                   color='START_POSITION',  # Column to group by
-                   nbins=50,  # Number of bins
-                   title='Points scored in a game by NBA starters',
-                   labels={'PTS': 'Points', 'START_POSITION': 'Position'},  # Rename axis
-                   barmode='group')  
+# File paths and position labels
+files_positions = [
+    ('data/fg2_data_guards.csv', 'G'),
+    ('data/fg2_data_forwards.csv', 'F'),
+    ('data/fg2_data_centers.csv', 'C'),
+    ('data/fg3_data_guards.csv', 'G'),
+    ('data/fg3_data_forwards.csv', 'F'),
+    ('data/fg3_data_centers.csv', 'C')
+]
 
-fig_reb = px.histogram(starter_stats, x='REB', 
-                   color='START_POSITION',  # Column to group by
-                   nbins=50,  # Number of bins
-                   title='Rebounds in a game by NBA starters',
-                   labels={'REB': 'Rebounds', 'START_POSITION': 'Position'},  # Rename axis
-                   barmode='group') 
+# Process each file
+dataframes = []
+for file, position in files_positions:
+    if 'fg3' in file:
+        df = read_and_process_data(file, position, 'Total_FG3A', 0.0, 'FG3%', 'Total_FG3M', 'Total_FG3A')
+    else:
+        df = read_and_process_data(file, position, 'Total_FG2A', 0.0, 'FG%', 'Total_FG2M', 'Total_FG2A')
+    dataframes.append(df)
 
-fig_ast = px.histogram(starter_stats, x='AST', 
-                   color='START_POSITION',  # Column to group by
-                   nbins=50,  # Number of bins
-                   title='Assists in a game by NBA starters',
-                   labels={'AST': 'Assists', 'START_POSITION': 'Position'},  # Rename axis
-                   barmode='group')  
+# Combine dataframes for FG% and FG3%
+fg2_data = pd.concat(dataframes[:3])
+fg3_data = pd.concat(dataframes[3:])
 
-fig_pts.update_layout(bargap=0.1)  # Gap between bars
-fig_reb.update_layout(bargap=0.1)  # Gap between bars
-fig_ast.update_layout(bargap=0.1)  # Gap between bars
-#fig_pts.show()
+# Histograms
+fg2_fig = px.histogram(fg2_data, x='FG%', color='Position', marginal='rug', opacity=0.7, nbins=100, barmode='group')
+fg3_fig = px.histogram(fg3_data, x='FG3%', color='Position', marginal='rug', opacity=0.7, nbins=100, barmode='group')
 
-fig_pts.write_image("images/fig_pts_by_pos.png")
-fig_reb.write_image("images/fig_reb_by_pos.png")
-fig_ast.write_image("images/fig_ast_by_pos.png")
+# save images
+fg2_fig.write_image("images/fg_fig.png")
+fg3_fig.write_image("images/fg3_fig.png")
 
-# create new df for each position
-g_df = starter_stats[starter_stats['START_POSITION'] == 'G']
-f_df = starter_stats[starter_stats['START_POSITION'] == 'F']
-c_df = starter_stats[starter_stats['START_POSITION'] == 'C']
+#fg_fig.show()
+#fg3_fig.show()
 
-# estimate mean for each position and stat
-g_pts_mean = g_df['PTS'].mean()
-f_pts_mean = f_df['PTS'].mean()
-c_pts_mean = c_df['PTS'].mean()
-g_reb_mean = g_df['REB'].mean()
-f_reb_mean = f_df['REB'].mean()
-c_reb_mean = c_df['REB'].mean()
-g_ast_mean = g_df['AST'].mean()
-f_ast_mean = f_df['AST'].mean()
-c_ast_mean = c_df['AST'].mean()
+# calculate mean and standard deviation for each position
+mean_g, std_g = fg2_data[fg2_data['Position'] == 'G']['FG%'].mean(), fg2_data[fg2_data['Position'] == 'G']['FG%'].std()
+mean_f, std_f = fg2_data[fg2_data['Position'] == 'F']['FG%'].mean(), fg2_data[fg2_data['Position'] == 'F']['FG%'].std()
+mean_c, std_c = fg2_data[fg2_data['Position'] == 'C']['FG%'].mean(), fg2_data[fg2_data['Position'] == 'C']['FG%'].std()
+# same for FG3%
+mean_g3, std_g3 = fg3_data[fg3_data['Position'] == 'G']['FG3%'].mean(), fg3_data[fg3_data['Position'] == 'G']['FG3%'].std()
+mean_f3, std_f3 = fg3_data[fg3_data['Position'] == 'F']['FG3%'].mean(), fg3_data[fg3_data['Position'] == 'F']['FG3%'].std()
+mean_c3, std_c3 = fg3_data[fg3_data['Position'] == 'C']['FG3%'].mean(), fg3_data[fg3_data['Position'] == 'C']['FG3%'].std()
 
-print('G mean points: ', g_pts_mean)
-print('F mean points: ', f_pts_mean)
-print('C mean points: ', c_pts_mean)
-print('G mean rebounds: ', g_reb_mean)
-print('F mean rebounds: ', f_reb_mean)
-print('C mean rebounds: ', c_reb_mean)
-print('G mean assists: ', g_ast_mean)
-print('F mean assists: ', f_ast_mean)
-print('C mean assists: ', c_ast_mean)
-
-
-
+# print the means and stds
+print('FG%')
+print('G: mean = {:.2f}, std = {:.2f}'.format(mean_g, std_g))
+print('F: mean = {:.2f}, std = {:.2f}'.format(mean_f, std_f))
+print('C: mean = {:.2f}, std = {:.2f}'.format(mean_c, std_c))
+print('FG3%')
+print('G: mean = {:.2f}, std = {:.2f}'.format(mean_g3, std_g3))
+print('F: mean = {:.2f}, std = {:.2f}'.format(mean_f3, std_f3))
+print('C: mean = {:.2f}, std = {:.2f}'.format(mean_c3, std_c3))
