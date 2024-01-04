@@ -1,6 +1,7 @@
 import numpy as np
+import pandas as pd
 from itertools import combinations
-from math import comb, trunc
+from math import comb
 from game import game
 from rosters import team
 from lists import team_nicknames
@@ -10,76 +11,63 @@ class season:
         self.num_teams = num_teams
         self.num_games = 2*comb(self.num_teams, 2)
         
-        # Create teams names, position names, stat names
-        self.teams = [team(name=team_nicknames[i],seed=i) for i in range(self.num_teams)]
-        self.positions = ['pg', 'sg', 'sf', 'pf', 'c']
-        self.stat_names = ['PTS', 'REB', 'AST']
+        # create list of teams
+        self.teams = [team(name=team_nicknames[i], seed=i) for i in range(self.num_teams)]
 
-        # Create numpy array with all combinations of two teams
+        # create numpy array with all combinations of two teams
         self.matchups = np.array(list(combinations(self.teams, 2)))
         # redefine it with two of each matchup
         self.matchups = np.concatenate((self.matchups, np.flip(self.matchups, axis=1)))
 
-        # initialize stats for the league
-        self.stats = np.zeros((self.num_teams,self.num_games,5,3))
-
-        # initialize win-loss record for each team
-        self.team_stats = np.zeros((self.num_teams,3))
-
-        # iterate over each matchup
-        for i in range(self.num_games):
-            # create a game instance
-            g = game(self.matchups[i,0], self.matchups[i,1], i, self.stats, self.team_stats)
-            # calculate box scores for both teams
-            g.calculate_box_score(self.matchups[i,0], 1)
-            g.calculate_box_score(self.matchups[i,1], -1)
-            g.win_loss()
+        # initialize a pandas dataframe with game statistics by player
+        self.df_game_stats = pd.DataFrame(columns= ['GAME_ID',
+                                               'TEAM_NAME',
+                                               'OPPONENT_NAME',
+                                                'PLAYER_NAME',
+                                                'POSITION',
+                                                'PTS',
+                                                'REB',
+                                                'AST',
+                                                'FG2M',
+                                                'FG2A',
+                                                'FG3M',
+                                                'FG3A'
+                                               ])
         
-    # print a stat for a specific team, game, position, and stat
-    def return_stats(self, team, game, pos, stat):
-        return self.stats[team, game, pos, stat]
+        # initialize dictionary of team records
+        self.team_records = {key: [0, 0, 0] for key in team_nicknames[:self.num_teams]}
 
-    # Print team names used in this instance
-    def print_teams(self):
-        for i in range(len(self.teams)):
-            print(self.teams[i].name)
-
-    # print a table of league standings
-    def standings(self):
-        # Combine team names with their stats for sorting
-        team_standings = [(self.teams[i].name, *self.team_stats[i]) for i in range(len(self.teams))]
-    
-        # Sort the combined list by wins (which is the first element of the stats tuple)
-        sorted_standings = sorted(team_standings, key=lambda x: x[1], reverse=True)
-    
-        # Print standings
-        for team_name, wins, losses, ties in sorted_standings:
-            print(f"{team_name}: {trunc(wins)}-{trunc(losses)}-{trunc(ties)}")
-
-    # print a table of league leaders
-    def league_leaders(self):
-        # compute the average stats for each player
-        average_stats = np.sum(self.stats, axis=1) / (2.*self.num_teams - 2.)
-
-        # make 2d arrays for each stat
-        ppg = average_stats[:,:,0]
-        rpg = average_stats[:,:,1]
-        apg = average_stats[:,:,2]
-
-        # find the max of each stat
-        ppg_indices = np.unravel_index(np.argmax(ppg), ppg.shape)
-        ppg_team_index, ppg_pos_index = ppg_indices
-        rpg_indices = np.unravel_index(np.argmax(rpg), rpg.shape)
-        rpg_team_index, rpg_pos_index = rpg_indices
-        apg_indices = np.unravel_index(np.argmax(apg), apg.shape)
-        apg_team_index, apg_pos_index = apg_indices
-
-        # print the results
-        print(f"PTS leader: {self.teams[ppg_team_index].name} {self.positions[ppg_pos_index]}, {round(ppg[ppg_indices],1)} PPG")
-        print(f"REB leader: {self.teams[rpg_team_index].name} {self.positions[rpg_pos_index]}, {round(rpg[rpg_indices],1)} RPG")
-        print(f"AST leader: {self.teams[apg_team_index].name} {self.positions[apg_pos_index]}, {round(apg[apg_indices],1)} APG")
+    def play_season(self):
+        # play each game
+        for i in range(self.num_games):
+            # play the game
+            team1, team2 = self.matchups[i]
+            team1_stats, team2_stats = game(team1, team2).play_game()
+            # initialize new rows of stats to add
+            new_rows = []
+            # add the stats to the game stats dataframe
+            for key, value in team1_stats.items():
+                new_rows.append([i, team1.name, team2.name, team1.name + '_' + key, key] + value)
+            for key, value in team2_stats.items():
+                new_rows.append([i, team2.name, team1.name, team2.name + '_' + key, key] + value)
+            self.df_game_stats = pd.concat([self.df_game_stats, pd.DataFrame(new_rows, columns=self.df_game_stats.columns)], ignore_index=True)
+            # update the team records
+            if team1_stats['Team'][0] > team2_stats['Team'][0]:
+                self.team_records[team1.name][0] += 1
+                self.team_records[team2.name][1] += 1
+            elif team1_stats['Team'][0] < team2_stats['Team'][0]:
+                self.team_records[team1.name][1] += 1
+                self.team_records[team2.name][0] += 1
+            # case of a draw
+            else:
+                self.team_records[team1.name][2] += 1
+                self.team_records[team2.name][2] += 1
+        # sort the team records by wins
+        self.team_records = {key: value for key, value in sorted(self.team_records.items(), key=lambda item: item[1][0], reverse=True)}
 
 s = season(30)
-s.standings()
-print()
-s.league_leaders()
+s.play_season()
+print(s.team_records)
+
+# save the game stats to a csv file
+s.df_game_stats.to_csv('game_stats.csv', index=False)
