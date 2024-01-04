@@ -21,7 +21,7 @@ files_positions = [
     ('data/fg2_data_centers.csv', 'C'),
     ('data/fg3_data_guards.csv', 'G'),
     ('data/fg3_data_forwards.csv', 'F'),
-    ('data/fg3_data_centers.csv', 'C')
+    ('data/fg3_data_centers.csv', 'C'),
 ]
 
 # Process each file
