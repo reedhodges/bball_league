@@ -6,14 +6,6 @@ from game import game
 from rosters import team
 from lists import team_nicknames
 
-import numpy as np
-import pandas as pd
-from itertools import combinations
-from math import comb
-from game import game
-from rosters import team
-from lists import team_nicknames
-
 class season:
     '''
     Simulates a season by simulating all games between all teams.  Each team plays every other team twice.
@@ -32,7 +24,7 @@ class season:
         return np.concatenate((matchups, np.flip(matchups, axis=1)))
 
     def initialize_game_stats_df(self):
-        columns = ['GAME_ID', 'TEAM_NAME', 'OPPONENT_NAME', 'PLAYER_NAME', 'POSITION', 'PTS', 'REB', 'AST', 'FG2M', 'FG2A', 'FG3M', 'FG3A']
+        columns = ['GAME_ID', 'TEAM_NAME', 'OPPONENT_NAME', 'PLAYER_NAME', 'POSITION', 'PTS', 'DREB', 'OREB', 'AST', 'FG2M', 'FG2A', 'FG3M', 'FG3A', 'STL', 'BLK', 'TO']
         return pd.DataFrame(columns=columns)
 
     def add_game_stats(self, game_id, team, opponent, team_stats):

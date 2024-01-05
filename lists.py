@@ -1,6 +1,6 @@
 import numpy as np
 
-team_nicknames = np.array([
+team_nicknames= np.array([
     'Eagles',
     'Dragons',
     'Raccoons',

@@ -4,6 +4,8 @@ from rosters import normalize_dict
 
 # constants
 TURNOVER_CHANCE = 0.05
+BLOCK_CHANCE = 0.07
+STEAL_CHANCE = 0.7
 ASSIST_CHANCE = 0.5
 OFF_REBOUND_CHANCE_BASE = 0.25
 OFF_REBOUND_BUFF_FACTOR = 0.25
@@ -26,9 +28,9 @@ def weighted_random_key(prob_dict):
 def initialize_stats():
     '''
     Initializes a dictionary of stats for each position on a single posession.
-    [PTS, REB, AST, 2PM, 2PA, 3PM, 3PA]
+    [PTS, DREB, OREB, AST, 2PM, 2PA, 3PM, 3PA, STL, BLK, TO]
     '''
-    return {pos: [0] * 7 for pos in ['PG', 'SG', 'SF', 'PF', 'C']}
+    return {pos: [0] * 11 for pos in ['PG', 'SG', 'SF', 'PF', 'C']}
 
 def handle_shot(off_team, position, shot_worth, result):
     '''
@@ -40,12 +42,15 @@ def handle_shot(off_team, position, shot_worth, result):
         # update points
         result[position][0] += shot_worth
         # update makes
-        make_index = 3 if shot_worth == 2 else 5
+        make_index = 4 if shot_worth == 2 else 6
         result[position][make_index] += 1
+        # update attempts
+        result[position][make_index + 1] += 1
         return True
-    # update misses
-    miss_index = 4 if shot_worth == 2 else 6
+    # update attempts for a miss
+    miss_index = 5 if shot_worth == 2 else 7
     result[position][miss_index] += 1
+    
     return False
 
 def handle_assist(off_team, shooter, result):
@@ -56,14 +61,41 @@ def handle_assist(off_team, shooter, result):
         assister = weighted_random_key(off_team.ast_distribution_pos)
         while assister == shooter:
             assister = weighted_random_key(off_team.ast_distribution_pos)
-        result[assister][2] += 1
+        result[assister][3] += 1
 
-def handle_rebound(team, result):
+def handle_block(def_team, result):
     '''
-    Determines if a rebound is made and updates the stats accordingly.
+    Determines if a block is made and updates the stats accordingly.
     '''
-    rebounder = weighted_random_key(team.reb_distribution_pos)
-    result[rebounder][1] += 1
+    if random.random() < BLOCK_CHANCE:
+        blocker = weighted_random_key(def_team.blk_distribution_pos)
+        result[blocker][9] += 1
+
+def handle_steal(def_team, result):
+    '''
+    Determines if a steal is made and updates the stats accordingly.
+    '''
+    if random.random() < STEAL_CHANCE:
+        stealer = weighted_random_key(def_team.stl_distribution_pos)
+        result[stealer][8] += 1
+
+def handle_turnover(off_team, result):
+    '''
+    Updates turnover stat.
+    '''
+    turnoverer = weighted_random_key(off_team.to_distribution_pos)
+    result[turnoverer][10] += 1
+
+def handle_rebound(type, team, result):
+    '''
+    Updates the rebounding stats.
+    '''
+    if type == 'oreb':
+        rebounder = weighted_random_key(team.oreb_distribution_pos)
+        result[rebounder][2] += 1
+    else:
+        rebounder = weighted_random_key(team.dreb_distribution_pos)
+        result[rebounder][1] += 1
 
 def possession(off_team, def_team):
     '''
@@ -76,6 +108,8 @@ def possession(off_team, def_team):
 
     # check for a turnover
     if random.random() < TURNOVER_CHANCE:
+        handle_steal(def_team, def_result)
+        handle_turnover(off_team, off_result)
         return off_result, def_result, next_team
     
     # determine who will shoot the ball
@@ -90,13 +124,16 @@ def possession(off_team, def_team):
         handle_assist(off_team, shooter, off_result)
         return off_result, def_result, next_team
     
+    # check for block
+    handle_block(def_team, def_result)
+    
     # check for offensive rebound
-    if random.random() < OFF_REBOUND_CHANCE_BASE + OFF_REBOUND_BUFF_FACTOR * ((off_team.expected_reb / def_team.expected_reb) - 1):
-        handle_rebound(off_team, off_result)
+    if random.random() < OFF_REBOUND_CHANCE_BASE + OFF_REBOUND_BUFF_FACTOR * ((off_team.expected_oreb / def_team.expected_dreb) - 1):
+        handle_rebound('oreb', off_team, off_result)
         next_team = off_team
     # assign defensive rebound
     else:
-        handle_rebound(def_team, def_result)
+        handle_rebound('dreb', def_team, def_result)
     
     return off_result, def_result, next_team
         
@@ -109,15 +146,15 @@ class game:
         self.team2 = team2
 
     def initialize_box_score(self):
-        return {pos: [0] * 7 for pos in ['PG', 'SG', 'SF', 'PF', 'C', 'Team']}
+        return {pos: [0] * 11 for pos in ['PG', 'SG', 'SF', 'PF', 'C', 'Team']}
 
     def update_box_score(self, box_score, position_stats):
         for position, stats in position_stats.items():
-            for i in range(7):
+            for i in range(11):
                 box_score[position][i] += stats[i]
 
     def sum_team_stats(self, box_score):
-        for i in range(7):
+        for i in range(11):
             box_score['Team'][i] = sum(stats[i] for position, stats in box_score.items() if position != 'Team')
 
     def play_game(self):

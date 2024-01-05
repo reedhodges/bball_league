@@ -17,8 +17,7 @@ class player:
             self.expected_stats[stat] = np.random.poisson(mean, 1)[0]
 
         # create an overall rating of each player based on their expected stats
-        self.overall = (self.expected_stats['fg2'] + self.expected_stats['fg3']  + self.expected_stats['reb'] + self.expected_stats['ast']) / (typical_stats['fg2'][0] * typical_stats['fg3'][0] * typical_stats['reb'] * typical_stats['ast']) 
-        
+        self.overall = (self.expected_stats['fg2'] + self.expected_stats['fg3']  + self.expected_stats['dreb'] + self.expected_stats['oreb'] + self.expected_stats['ast']) / (typical_stats['fg2'][0] * typical_stats['fg3'][0] * typical_stats['dreb'] * typical_stats['oreb'] * typical_stats['ast']) 
 
 class guard(player):
     def __init__(self, seed=None):
@@ -27,8 +26,12 @@ class guard(player):
             'fg2': (0.47, 0.09),
             'fg3': (0.35, 0.09),
             # mean value 
-            'reb': 3.8,
-            'ast': 4.6
+            'dreb': 3.07,
+            'oreb': 0.69,
+            'ast': 4.6,
+            'stl': 1.15,
+            'blk': 0.29,
+            'to': 2.12
         }, seed=seed)
         
 class forward(player):
@@ -38,8 +41,12 @@ class forward(player):
             'fg2': (0.49, 0.10),
             'fg3': (0.34, 0.09),
             # mean value
-            'reb': 6.2,
-            'ast': 2.3
+            'dreb': 4.70,
+            'oreb': 1.49,
+            'ast': 2.33,
+            'stl': 0.95,
+            'blk': 0.67,
+            'to': 1.68
         }, seed=seed+2)
 
 class center(player):
@@ -49,8 +56,12 @@ class center(player):
             'fg2': (0.53, 0.10),
             'fg3': (0.32, 0.12),
             # mean value 
-            'reb': 8.1,
-            'ast': 1.6
+            'dreb': 5.62,
+            'oreb': 2.49,
+            'ast': 1.62,
+            'stl': 0.68,
+            'blk': 1.24,
+            'to': 1.60
         }, seed=seed+4)
 
 def normalize_dict(dictionary):
@@ -95,13 +106,16 @@ class team:
                 weights_dict[position] = player.expected_stats[stat_to_consider]
             return normalize_dict(weights_dict)
 
-        # expected distribution of shots taken by position
+        # expected distributions of stats by position
         self.shot_distribution_pos = roster_weight('fg')
-        # expected distribution of rebounds by position
-        self.reb_distribution_pos = roster_weight('reb')
-        # expected distribution of assists by position
+        self.dreb_distribution_pos = roster_weight('dreb')
+        self.oreb_distribution_pos = roster_weight('oreb')
         self.ast_distribution_pos = roster_weight('ast')
+        self.stl_distribution_pos = roster_weight('stl')
+        self.blk_distribution_pos = roster_weight('blk')
+        self.to_distribution_pos = roster_weight('to')
         # pace of team: average number of possessions per game
         self.pace = np.random.normal(75, 5, 1)[0]
         # expected rebounds a team gets per game
-        self.expected_reb = sum(player.expected_stats['reb'] for player in self.positions_dict.values())
+        self.expected_dreb = sum(player.expected_stats['dreb'] for player in self.positions_dict.values())
+        self.expected_oreb = sum(player.expected_stats['oreb'] for player in self.positions_dict.values())
