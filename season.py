@@ -53,7 +53,7 @@ class season:
 
         self.team_records = {key: value for key, value in sorted(self.team_records.items(), key=lambda item: item[1][0], reverse=True)}
 
-s = season(30)
+s = season(100)
 s.play_season()
 print(s.team_records)
 

@@ -1,6 +1,6 @@
 import numpy as np
 
-team_nicknames= np.array([
+team_mascots = np.array([
     'Eagles',
     'Dragons',
     'Raccoons',
@@ -32,3 +32,5 @@ team_nicknames= np.array([
     'Crocodiles',
     'Mustangs'
 ])
+
+team_nicknames = ['Team' + str(i) for i in range(100)]

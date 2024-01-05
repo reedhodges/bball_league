@@ -69,6 +69,8 @@ def normalize_dict(dictionary):
     Normalize a dictionary of values so that they sum to 1.
     '''
     total = sum(dictionary.values())
+    if total == 0:
+        return {key: 0.2 for key in dictionary.keys()}
     return {key: value / total for key, value in dictionary.items()}
 
 class team:
