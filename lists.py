@@ -33,4 +33,4 @@ team_mascots = np.array([
     'Mustangs'
 ])
 
-team_nicknames = ['Team' + str(i) for i in range(100)]
+team_nicknames = ['Team_' + str(i) for i in range(100)]

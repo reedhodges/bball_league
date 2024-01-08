@@ -22,6 +22,18 @@ class season:
         # initialize date the last time each team played a game to the start of the season
         self.team_last_game_date = {team_name: datetime(2024, 1, 1) for team_name in team_nicknames[:self.num_teams]}
 
+    def get_team_id(self, team_name):
+        split_name = team_name.split('_')
+        return int(split_name[1])
+    
+    def get_player_id(self, player_name):
+        split_name = player_name.split('_')
+        if len(split_name) < 3:
+            raise ValueError(f"Invalid player name format: {player_name}")
+        team_part, position_part = split_name[1], split_name[2]
+        position_index = ['PG', 'SG', 'SF', 'PF', 'C', 'Team'].index(position_part)
+        team_id = int(team_part)
+        return team_id * 5 + position_index
 
     def generate_matchups(self):
         matchups = np.array(list(combinations(self.teams, 2)))
@@ -29,16 +41,16 @@ class season:
         return np.concatenate((matchups, np.flip(matchups, axis=1)))
 
     def initialize_game_stats_df(self):
-        columns = ['GAME_ID', 'GAME_DATE', 'TEAM_NAME', 'OPPONENT_NAME', 'PLAYER_NAME', 'POSITION', 'PTS', 'DREB', 'OREB', 'AST', 'FG2M', 'FG2A', 'FG3M', 'FG3A', 'STL', 'BLK', 'TO']
+        columns = ['GAME_ID', 'GAME_DATE', 'TEAM_NAME', 'TEAM_ID', 'OPPONENT_NAME', 'OPPONENT_ID', 'PLAYER_NAME', 'PLAYER_ID', 'POSITION', 'PTS', 'DREB', 'OREB', 'AST', 'FG2M', 'FG2A', 'FG3M', 'FG3A', 'STL', 'BLK', 'TO']
         return pd.DataFrame(columns=columns)
     
     def initialize_player_info_df(self):
-        columns = ['PLAYER_NAME', 'HEIGHT', 'WEIGHT', 'DOB', 'HANDEDNESS']
+        columns = ['PLAYER_NAME', 'PLAYER_ID', 'HEIGHT', 'WEIGHT', 'DOB', 'HANDEDNESS']
         return pd.DataFrame(columns=columns)
 
     def add_game_stats(self, game_id, game_date, team, opponent, team_stats):
         # add the team stats for a single game to the game stats dataframe
-        rows = [[game_id, game_date, team.name, opponent.name, f"{team.name}_{position}", position] + stats for position, stats in team_stats.items()]
+        rows = [[game_id, game_date, team.name, self.get_team_id(team.name), opponent.name, self.get_team_id(opponent.name), f"{team.name}_{position}", self.get_player_id(f"{team.name}_{position}"),position] + stats for position, stats in team_stats.items()]
         self.df_game_stats = pd.concat([self.df_game_stats, pd.DataFrame(rows, columns=self.df_game_stats.columns)], ignore_index=True)
 
     def add_player_info(self, team):
@@ -46,6 +58,7 @@ class season:
         rows = [
             [
                 f"{team.name}_{position}", 
+                self.get_player_id(f"{team.name}_{position}"),
                 player.expected_stats['height'], 
                 player.expected_stats['weight'], 
                 player.expected_stats['dob'], 
