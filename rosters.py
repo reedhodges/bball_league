@@ -1,4 +1,6 @@
 import numpy as np
+import random
+from datetime import datetime, timedelta
 
 class player:
     '''
@@ -16,8 +18,8 @@ class player:
         for stat, mean in poissons.items():
             self.expected_stats[stat] = np.random.poisson(mean, 1)[0]
 
-        # create an overall rating of each player based on their expected stats
-        self.overall = (self.expected_stats['fg2'] + self.expected_stats['fg3']  + self.expected_stats['dreb'] + self.expected_stats['oreb'] + self.expected_stats['ast']) / (typical_stats['fg2'][0] * typical_stats['fg3'][0] * typical_stats['dreb'] * typical_stats['oreb'] * typical_stats['ast']) 
+        self.expected_stats['dob'] = weighted_random_date(datetime(1985, 1, 1), datetime(2004, 1, 1))
+        self.expected_stats['handedness'] = 'L' if random.random() < 0.1 else 'R'
 
 class guard(player):
     def __init__(self, seed=None):
@@ -25,6 +27,8 @@ class guard(player):
             # stat: (mean, std)
             'fg2': (0.47, 0.09),
             'fg3': (0.35, 0.09),
+            'height': (190, 9),
+            'weight': (88, 5),
             # mean value 
             'dreb': 3.07,
             'oreb': 0.69,
@@ -40,6 +44,8 @@ class forward(player):
             # stat: (mean, std)
             'fg2': (0.49, 0.10),
             'fg3': (0.34, 0.09),
+            'height': (200, 9),
+            'weight': (100, 10),
             # mean value
             'dreb': 4.70,
             'oreb': 1.49,
@@ -55,6 +61,8 @@ class center(player):
             # stat: (mean, std)
             'fg2': (0.53, 0.10),
             'fg3': (0.32, 0.12),
+            'height': (208, 9),
+            'weight': (112, 10),
             # mean value 
             'dreb': 5.62,
             'oreb': 2.49,
@@ -121,3 +129,17 @@ class team:
         # expected rebounds a team gets per game
         self.expected_dreb = sum(player.expected_stats['dreb'] for player in self.positions_dict.values())
         self.expected_oreb = sum(player.expected_stats['oreb'] for player in self.positions_dict.values())
+
+def weighted_random_date(start_date, end_date):
+    '''
+    Picks a random date between start_date and end_date, with a higher probability of picking a date closer to end_date.
+    '''
+    delta = end_date - start_date
+    weights = [i for i in range(delta.days + 1)]
+    total_weight = sum(weights)
+    chosen_weight = random.uniform(0, total_weight)
+    cumulative_weight = 0
+    for i, weight in enumerate(weights):
+        cumulative_weight += weight
+        if cumulative_weight >= chosen_weight:
+            return start_date + timedelta(days=i)
