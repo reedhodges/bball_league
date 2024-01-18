@@ -137,7 +137,7 @@ def possession(off_team, def_team):
     
     return off_result, def_result, next_team
         
-class game:
+class Game:
     '''
     Simulates a game by simulating a number of possessions between two teams.
     '''

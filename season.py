@@ -3,18 +3,18 @@ import pandas as pd
 from itertools import combinations
 from math import comb
 from datetime import timedelta, datetime
-from game import game
-from rosters import team
+from game import Game
+from rosters import Team
 from lists import team_nicknames
 
-class season:
+class Season:
     '''
     Simulates a season by simulating all games between all teams.  Each team plays every other team twice.
     '''
     def __init__(self, num_teams):
         self.num_teams = num_teams
         self.num_games = 2 * comb(self.num_teams, 2)
-        self.teams = [team(name=team_nicknames[i], seed=i) for i in range(self.num_teams)]
+        self.teams = [Team(name=team_nicknames[i], seed=i) for i in range(self.num_teams)]
         self.matchups = self.generate_matchups()
         self.df_game_stats = self.initialize_game_stats_df()
         self.df_player_info = self.initialize_player_info_df()
@@ -93,7 +93,7 @@ class season:
         for game_id in range(self.num_games):
             team1, team2 = self.matchups[game_id]
             game_date = self.assign_game_date(team1.name, team2.name)
-            team1_stats, team2_stats = game(team1, team2).play_game()
+            team1_stats, team2_stats = Game(team1, team2).play_game()
             self.add_game_stats(game_id, game_date, team1, team2, team1_stats)
             self.add_game_stats(game_id, game_date, team2, team1, team2_stats)
             self.update_team_records(team1, team2, team1_stats, team2_stats)
@@ -103,11 +103,11 @@ class season:
 
         self.team_records = {key: value for key, value in sorted(self.team_records.items(), key=lambda item: item[1][0], reverse=True)}
 
-s = season(50)
+s = Season(50)
 s.play_season()
 print(s.team_records)
 
 # save the game stats to a csv file
-s.df_game_stats.to_csv('game_stats.csv', index=False)
+#s.df_game_stats.to_csv('game_stats.csv', index=False)
 # save the player info to a csv file
-s.df_player_info.to_csv('player_info.csv', index=False)
+#s.df_player_info.to_csv('player_info.csv', index=False)

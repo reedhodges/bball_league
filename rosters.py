@@ -2,7 +2,7 @@ import numpy as np
 import random
 from datetime import datetime, timedelta
 
-class player:
+class Player:
     '''
     Generates a player of a given position and sets their expected stats.
     '''
@@ -21,7 +21,7 @@ class player:
         self.expected_stats['dob'] = weighted_random_date(datetime(1985, 1, 1), datetime(2004, 1, 1))
         self.expected_stats['handedness'] = 'L' if random.random() < 0.1 else 'R'
 
-class guard(player):
+class Guard(Player):
     def __init__(self, seed=None):
         super().__init__({
             # stat: (mean, std)
@@ -38,7 +38,7 @@ class guard(player):
             'to': 2.12
         }, seed=seed)
         
-class forward(player):
+class Forward(Player):
     def __init__(self, seed=None):
         super().__init__({
             # stat: (mean, std)
@@ -55,7 +55,7 @@ class forward(player):
             'to': 1.68
         }, seed=seed+2)
 
-class center(player):
+class Center(Player):
     def __init__(self, seed=None):
         super().__init__({
             # stat: (mean, std)
@@ -81,7 +81,7 @@ def normalize_dict(dictionary):
         return {key: 0.2 for key in dictionary.keys()}
     return {key: value / total for key, value in dictionary.items()}
 
-class team:
+class Team:
     ''' 
     Generates a team of 5 players.  Also sets the expected distribution of stats and the pace.
     '''
@@ -89,11 +89,11 @@ class team:
         self.name = name
         self.seed = seed
         # roster
-        self.pg = guard(seed=self.seed)
-        self.sg = guard(seed=self.seed + 1)
-        self.sf = forward(seed=self.seed)
-        self.pf = forward(seed=self.seed + 1)
-        self.c = center(seed=self.seed)
+        self.pg = Guard(seed=self.seed)
+        self.sg = Guard(seed=self.seed + 1)
+        self.sf = Forward(seed=self.seed)
+        self.pf = Forward(seed=self.seed + 1)
+        self.c = Center(seed=self.seed)
 
         # dictionaries with position objects
         self.positions_dict = {
@@ -104,31 +104,31 @@ class team:
             'C': self.c
         }
 
-        def roster_weight(stat_to_consider):
-            # returns a dictionary of weights for each position based on a given stat.
-            weights_dict = {}
-            if stat_to_consider == 'fg':
-                for position, player in self.positions_dict.items():
-                    # choose the larger of 2P% and 3P%
-                    weights_dict[position] = max(player.expected_stats['fg2'], player.expected_stats['fg3'])
-                return normalize_dict(weights_dict)
-            for position, player in self.positions_dict.items():
-                weights_dict[position] = player.expected_stats[stat_to_consider]
-            return normalize_dict(weights_dict)
-
         # expected distributions of stats by position
-        self.shot_distribution_pos = roster_weight('fg')
-        self.dreb_distribution_pos = roster_weight('dreb')
-        self.oreb_distribution_pos = roster_weight('oreb')
-        self.ast_distribution_pos = roster_weight('ast')
-        self.stl_distribution_pos = roster_weight('stl')
-        self.blk_distribution_pos = roster_weight('blk')
-        self.to_distribution_pos = roster_weight('to')
+        self.shot_distribution_pos = self.roster_weight('fg')
+        self.dreb_distribution_pos = self.roster_weight('dreb')
+        self.oreb_distribution_pos = self.roster_weight('oreb')
+        self.ast_distribution_pos = self.roster_weight('ast')
+        self.stl_distribution_pos = self.roster_weight('stl')
+        self.blk_distribution_pos = self.roster_weight('blk')
+        self.to_distribution_pos = self.roster_weight('to')
         # pace of team: average number of possessions per game
         self.pace = np.random.normal(75, 5, 1)[0]
         # expected rebounds a team gets per game
         self.expected_dreb = sum(player.expected_stats['dreb'] for player in self.positions_dict.values())
         self.expected_oreb = sum(player.expected_stats['oreb'] for player in self.positions_dict.values())
+
+    def roster_weight(self, stat_to_consider):
+        # returns a dictionary of weights for each position based on a given stat.
+        weights_dict = {}
+        if stat_to_consider == 'fg':
+            for position, player in self.positions_dict.items():
+                # choose the larger of 2P% and 3P%
+                weights_dict[position] = max(player.expected_stats['fg2'], player.expected_stats['fg3'])
+            return normalize_dict(weights_dict)
+        for position, player in self.positions_dict.items():
+            weights_dict[position] = player.expected_stats[stat_to_consider]
+        return normalize_dict(weights_dict)
 
 def weighted_random_date(start_date, end_date):
     '''
