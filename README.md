@@ -1,4 +1,4 @@
-# bball_league
+# Fake basketball league simulator
 
 This program simulates a fake basketball league's season.  It creates a league with N teams, fills out each roster with five unique players, and simulates each possession of the games between the teams.  I wrote this as a way to generate my own data with which to learn SQL and Tableau.  Check out the portfolio project <a href="https://reedhodges.github.io/sql-project/">webpage</a> for a walkthrough, or go straight to the <a href="https://reedhodges.github.io/html_files/bball_league_story.html">visualization</a>.
 
@@ -9,3 +9,15 @@ This program simulates a fake basketball league's season.  It creates a league w
 - `season.py`: contains the class the simulates a full season and stores the game statistics
 - `lists.py`: contains lists of team nicknames/mascots
 - `expl_data_analysis.py`: plots real NBA stats using plotly (for use in the portfolio project), and obtains means and/or standard deviations for the distributions used in the simulation
+
+## Dependencies
+```python
+import numpy as np
+import pandas as pd
+import random
+from itertools import combinations
+from math import comb
+```
+
+## Contact
+Reed Hodges - [Email](mailto:reed.hodges@duke.edu)
